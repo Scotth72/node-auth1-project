@@ -15,6 +15,7 @@ router.post('/register', (req, res) => {
 		db
 			.insert(credentials)
 			.then((user) => {
+				req.session.loggedIn === true;
 				res.status(201).json({ data: user });
 			})
 			.catch((error) => {
@@ -27,20 +28,38 @@ router.post('/register', (req, res) => {
 
 router.post('/login', (req, res) => {
 	const { username, password } = req.body;
-	db
-		.getBy({ username })
-		.then(([ found ]) => {
-			console.log(found);
-			if (found && bcryptjs.compareSync(password, found.password)) {
-				req.session.login = true;
-				res.status(200).json(found);
+	if (isValid(req.body)) {
+		db
+			.getBy({ username })
+			.then(([ found ]) => {
+				console.log(found);
+				if (found && bcryptjs.compareSync(password, found.password)) {
+					req.session.login = true;
+					res.status(200).json({ message: 'Welcome to the API' });
+				} else {
+					res.status(401).json({ message: 'Invalid username or password' });
+				}
+			})
+			.catch((error) => {
+				res.status(500).json(error.message);
+			});
+	} else {
+		res.status(400).json({ message: 'Please provide username and password' });
+	}
+});
+
+router.get('/logout', (req, res) => {
+	if (req.session) {
+		req.session.destroy((error) => {
+			if (error) {
+				res.status(500).json({ message: 'We could not log you out' });
 			} else {
-				res.status(401).json({ message: 'Invalid username or password' });
+				res.status(204).end();
 			}
-		})
-		.catch((error) => {
-			res.status(500).json(error.message);
 		});
+	} else {
+		res.status(204).end();
+	}
 });
 
 module.exports = router;

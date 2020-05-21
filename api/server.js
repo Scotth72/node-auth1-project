@@ -15,7 +15,7 @@ const sessionConfig = {
 		httpOnly: true
 	},
 	resave: false,
-	saveUninitialized: process.USER_ALLOWED_COOKIES || true,
+	saveUninitialized: process.env.USER_ALLOWED_COOKIES || true,
 	name: 'duck',
 	secret: process.env.COOKIE_SECRET || 'huntinthesky'
 };
